@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AP Exam Countdown</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #1b3f8b;
+      --accent-glow: rgba(27, 63, 139, 0.15);
+      --urgent: #c0392b;
+      --urgent-glow: rgba(192, 57, 43, 0.15);
+    }
+
+    [data-theme="dark"] {
+      --bg: #0d0d0f;
+      --surface: #131317;
+      --border: #222228;
+      --text: #f0f0f0;
+      --muted: #7f7f9b;
+      --toggle-bg: #1e1e24;
+      --toggle-border: #333340;
+      --bg-grad1: rgba(27, 63, 139, 0.05);
+      --bg-grad2: rgba(27, 63, 139, 0.03);
+    }
+
+    [data-theme="light"] {
+      --bg: #f2f3f7;
+      --surface: #ffffff;
+      --border: #dde0eb;
+      --text: #0f1120;
+      --muted: #707488;
+      --toggle-bg: #e4e6ef;
+      --toggle-border: #cdd0de;
+      --bg-grad1: rgba(27, 63, 139, 0.04);
+      --bg-grad2: rgba(27, 63, 139, 0.02);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      padding: 48px 32px;
+      transition: background 0.3s, color 0.3s;
+      background-image:
+        radial-gradient(ellipse 60% 40% at 80% 10%, var(--bg-grad1) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 10% 80%, var(--bg-grad2) 0%, transparent 50%);
+    }
+
+    @media screen and (max-width: 480px) {
+      body {
+        padding: 32px 16px;
+      }
+    }
+
+    header {
+      max-width: 1200px;
+      margin: 0 auto 52px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    header h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(36px, 6vw, 80px);
+      letter-spacing: 0.04em;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    header h1 span { color: var(--accent); }
+
+    .subtitle {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      border-left: 1px solid var(--border);
+      padding-left: 20px;
+      line-height: 1.6;
+      flex: 1;
+    }
+
+    .toggle-btn {
+      background: var(--toggle-bg);
+      border: 1px solid var(--toggle-border);
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 7px 14px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s, background 0.3s;
+      align-self: center;
+      white-space: nowrap;
+    }
+
+    .toggle-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+    }
+
+    .tile {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 28px 24px 24px;
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+      transition: border-color 0.2s, transform 0.2s, background 0.3s, box-shadow 0.2s;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .tile:hover {
+      border-color: var(--accent);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 32px var(--accent-glow);
+      z-index: 1;
+    }
+
+    .tile:hover .days-num { color: var(--accent); }
+
+    .tile::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
+    }
+
+    .tile:hover::before { transform: scaleX(1); }
+
+    .tile.urgent { border-color: rgba(192, 57, 43, 0.35); }
+    .tile.urgent .days-num { color: var(--urgent); }
+    .tile.urgent::before { background: var(--urgent); }
+    .tile.urgent:hover {
+      border-color: var(--urgent);
+      box-shadow: 0 8px 32px var(--urgent-glow);
+    }
+
+    .tile.done { opacity: 0.3; }
+    .tile.done .days-num { color: var(--muted); }
+
+    .tile-index {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      margin-bottom: 16px;
+    }
+
+    .tile-date {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .tile-subject {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: 0.04em;
+      line-height: 1.3;
+      margin-bottom: 28px;
+      text-transform: uppercase;
+    }
+
+    .days-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 72px;
+      line-height: 1;
+      color: var(--text);
+      transition: color 0.2s;
+    }
+
+    .days-label {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .corner-dot {
+      position: absolute;
+      top: 14px; right: 14px;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: background 0.2s;
+    }
+
+    .tile.urgent .corner-dot {
+      background: var(--urgent);
+      box-shadow: 0 0 6px var(--urgent);
+      animation: pulse 1.5s infinite;
+    }
+
+    .tile:hover .corner-dot { background: var(--accent); }
+    .tile.urgent:hover .corner-dot { background: var(--urgent); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .tile:nth-child(1) { animation-delay: 0.05s; }
+    .tile:nth-child(2) { animation-delay: 0.10s; }
+    .tile:nth-child(3) { animation-delay: 0.15s; }
+    .tile:nth-child(4) { animation-delay: 0.20s; }
+    .tile:nth-child(5) { animation-delay: 0.25s; }
+    .tile:nth-child(6) { animation-delay: 0.30s; }
+    .tile:nth-child(7) { animation-delay: 0.35s; }
+    .tile:nth-child(8) { animation-delay: 0.40s; }
+
+    footer {
+      max-width: 1200px;
+      margin: 28px auto 0;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-align: right;
+    }
+
+    #live-clock { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>AP<span>.</span>EXAMS</h1>
+  <div class="subtitle">
+    2026 season<br>
+    <span id="live-clock"></span>
+  </div>
+  <button class="toggle-btn" id="theme-toggle" onclick="toggleTheme()">☀ Light</button>
+</header>
+
+<div class="grid" id="grid"></div>
+<footer id="footer-text"></footer>
+
+<script>
+  const EXAMS = [
+    { date: "2026-05-05", subject: "US Government & Politics" },
+    { date: "2026-05-06", subject: "Physics 1" },
+    { date: "2026-05-08", subject: "Macroeconomics" },
+    { date: "2026-05-11", subject: "Calculus BC" },
+    { date: "2026-05-13", subject: "Spanish Literature" },
+    { date: "2026-05-14", subject: "Physics C: E&M" },
+    { date: "2026-05-15", subject: "Computer Science A" },
+    { date: "2026-05-21", subject: "Physics C: Mechanics" },
+  ];
+
+  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+  function daysUntil(dateStr) {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const exam = new Date(dateStr + "T00:00:00");
+    return Math.round((exam - today) / 86400000);
+  }
+
+  function formatDate(dateStr) {
+    const d = new Date(dateStr + "T00:00:00");
+    return `${MONTHS[d.getMonth()]} ${d.getDate()}`;
+  }
+
+  function render() {
+    const grid = document.getElementById("grid");
+    grid.innerHTML = "";
+    EXAMS.forEach((exam, i) => {
+      const days = daysUntil(exam.date);
+      const done = days < 0;
+      const urgent = !done && days <= 7;
+      const tile = document.createElement("div");
+      tile.className = "tile" + (urgent ? " urgent" : "") + (done ? " done" : "");
+      const dayLabel = done ? "complete" : days === 0 ? "today" : days === 1 ? "day away" : "days away";
+      const displayNum = done ? "✓" : days;
+      tile.innerHTML = `
+        <div class="corner-dot"></div>
+        <div class="tile-index">EXAM ${String(i+1).padStart(2,"0")}</div>
+        <div class="tile-date">${formatDate(exam.date)}</div>
+        <div class="tile-subject">${exam.subject}</div>
+        <div class="days-num">${displayNum}</div>
+        <div class="days-label">${dayLabel}</div>
+      `;
+      grid.appendChild(tile);
+    });
+    const remaining = EXAMS.filter(e => daysUntil(e.date) >= 0).length;
+    document.getElementById("footer-text").textContent =
+      remaining === 0 ? "All exams complete. Go celebrate." : `${remaining} exam${remaining !== 1 ? "s" : ""} remaining`;
+  }
+
+  function clock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2,"0");
+    const m = String(now.getMinutes()).padStart(2,"0");
+    const s = String(now.getSeconds()).padStart(2,"0");
+    document.getElementById("live-clock").textContent = `${h}:${m}:${s}`;
+  }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const btn = document.getElementById("theme-toggle");
+    if (html.getAttribute("data-theme") === "dark") {
+      html.setAttribute("data-theme", "light");
+      btn.textContent = "☾ Dark";
+    } else {
+      html.setAttribute("data-theme", "dark");
+      btn.textContent = "☀ Light";
+    }
+  }
+
+  render();
+  clock();
+  setInterval(clock, 1000);
+  setInterval(render, 60000);
+</script>
+</body>
+</html>
